@@ -1,0 +1,107 @@
+package thema1.tutorial.jdbc.servlet;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+
+import javax.annotation.Resource;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.sql.DataSource;
+
+/**
+ * Servlet implementation class UpdateAdresse
+ */
+@WebServlet("/UpdateAdresse")
+public class JDBCUpdateAdresse extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+       
+    @Resource(lookup = "java:jboss/datasources/Shop")
+    private DataSource dataSource;
+
+
+	/**
+	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
+	 */
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+	    PrintWriter writer = response.getWriter();
+	    Connection con = null;
+	    
+        try {
+            con = dataSource.getConnection();
+
+            updateWithNativeSQL(con, writer);
+            writer.println();
+            updateWithPreparedStatement(con, writer);
+            
+            writer.close();
+            con.close();
+        } catch (SQLException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            writer.println("failed to connect.");
+            writer.close();
+        }
+	}
+	
+	private void updateWithNativeSQL(Connection con, PrintWriter writer){
+        writer.println("Insert plain SQL");
+        String sql_plain = "UPDATE Adresse SET houseNumber = 10 WHERE id = 0";
+        writer.println("Try to update: " + sql_plain);
+        
+        try{
+            Statement stmt = con.createStatement();
+            stmt.executeUpdate(sql_plain);
+            // Select to check if changes were done
+            String sql_update = "SELECT * FROM Adresse WHERE id = 0";
+            try{
+                ResultSet rs = stmt.executeQuery(sql_update);
+                writer.println("Result:");
+                while(rs.next()){
+                    writer.println(rs.getInt(1) + " " + rs.getString(2) + " " + rs.getString(3) + " " + rs.getString(4));
+                }
+            } catch(SQLException e){
+                writer.print(e);
+                writer.println("failed to select result.");
+            }
+            writer.println("updated succesfully");
+        } catch(SQLException e){
+            writer.println("failed to update.");
+        }
+	}
+	
+	private void updateWithPreparedStatement(Connection con, PrintWriter writer){
+        writer.println("Update with Prepared Statement:");
+        String sql_prepared = "UPDATE Adresse SET houseNumber = ? WHERE id = ?";
+        writer.println(sql_prepared);
+        
+        try{
+            PreparedStatement pstmt = con.prepareStatement(sql_prepared);
+            pstmt.setString(1, "100");
+            pstmt.setInt(2, 1);
+            pstmt.executeUpdate();
+            String sql_update = "SELECT * FROM Adresse WHERE id = 1";
+            try{
+                Statement stmt = con.createStatement();
+                ResultSet rs = stmt.executeQuery(sql_update);
+                writer.println("Reslut: ");
+                while(rs.next()){
+                    writer.println(rs.getInt(1) + " " + rs.getString(2) + " " + rs.getString(3) + " " + rs.getString(4));
+                }
+            } catch(SQLException e){
+                writer.print(e);
+                writer.println("failed to select result.");
+            }
+        } catch(SQLException e){
+            writer.println("failed to update.");
+        }
+	}
+
+}
