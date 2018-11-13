@@ -1,0 +1,25 @@
+
+<plugin>
+	<artifactId>maven-resources-plugin</artifactId>
+	<version>2.7</version>
+	<executions>
+	  <execution>
+		<id>copy-file</id>
+		<phase>install</phase>
+		<goals>
+		  <goal>copy-resources</goal>
+		</goals>
+		<configuration>
+		  <resources>
+            <resource>
+              <directory>/home/lars/Workspaces/Eclipse/JEE-Neon-R-Java/orderhandling-wildfly-process/target</directory>
+                <includes>
+                    <include>orderhandling-wildfly-process.war</include>
+                </includes>
+              </resource>
+         </resources>
+		 <outputDirectory>/home/lars/camunda/server/wildfly-10.1.0.Final/standalone/deployments</outputDirectory>
+		</configuration>
+	  </execution>
+	</executions>
+</plugin>
